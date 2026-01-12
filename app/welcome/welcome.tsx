@@ -2,9 +2,10 @@ import React, { useState, useMemo } from "react";
 import { TodoItem } from "./components/TodoItem";
 import { Filter } from "./components/Filter";
 import { Stats } from "./components/Stats";
-import { Pagination } from "./components/Pagination";
+import Pagination from "./components/Pagination";
 import { useTodos } from "~/hooks/useTodos";
 import { useUsers } from "~/hooks/useUsers";
+import Header from "./components/Header";
 
 const TodoList: React.FC<{ showCompleted?: boolean }> = ({
   showCompleted = false,
@@ -21,6 +22,7 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
   const [sortBy, setSortBy] = useState<"id" | "title">("id");
   const [selectedUser, setSelectedUser] = useState<number | null>(null);
   const [page, setPage] = useState(1);
+  const [view, setView] = useState<"list" | "grid">("list");
 
   const filteredTodos = todos?.filter((todo) => {
     if (showCompleted && !todo.completed) return false;
@@ -40,12 +42,14 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
 
   const stats = useMemo(() => {
     const completed = todos.filter((t) => t.completed).length;
+    const inprogress = todos.filter((t) => !t.completed).length;
     const userCount = new Set(todos.map((t) => t.userId)).size;
 
     return {
       completed,
       userCount,
       total: todos.length,
+      inprogress,
     };
   }, [todos]);
 
@@ -54,38 +58,64 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
   if (todos.length === 0) return <div>No todos found</div>;
 
   return (
-    <div>
-      <Filter
-        users={Object.values(users)}
-        filterByText={{
-          value: filterText,
-          onChange: setFilterText,
-        }}
-        filterByUser={{
-          value: selectedUser,
-          onChange: setSelectedUser,
-        }}
-        sortBy={{
-          value: sortBy,
-          onChange: setSortBy,
-        }}
-      />
+    <div className="min-h-screen gradient-hero">
+      <div className="max-w-6xl mx-auto px-4 py-6 md:py-10 space-y-6">
+        <Header users={users} />
 
-      {stats && <Stats stats={stats} />}
+        {/* Stats */}
+        {stats && <Stats stats={stats} />}
 
-      {paginatedTodos.map((todo) => (
-        <TodoItem
-          user={users[todo.userId]}
-          todo={todo}
-          // handleTodoClick={handleTodoClick}
+        {/* Filter */}
+        <Filter
+          users={Object.values(users)}
+          filterByText={{
+            value: filterText,
+            onChange: setFilterText,
+          }}
+          filterByUser={{
+            value: selectedUser,
+            onChange: setSelectedUser,
+          }}
+          sortBy={{
+            value: sortBy,
+            onChange: setSortBy,
+          }}
+          viewAction={{ view, setView }}
         />
-      ))}
 
-      <Pagination page={page} totalPages={totalPages} setPage={setPage} />
+        {/* Results Count */}
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>
+            Debug: {todos.length} todo loaded / Filtered: {filteredTodos.length}{" "}
+            todos
+          </span>
+          <span className="text-primary font-medium">
+            Show {paginatedTodos.length} / {filteredTodos.length} tasks
+          </span>
+        </div>
 
-      <div style={{ marginTop: "20px", fontSize: "12px", color: "#666" }}>
-        <p>Debug: {todos.length} todos loaded</p>
-        <p>Filtered: {filteredTodos.length} todos</p>
+        {/* Todo Items */}
+        <div
+          className={
+            view === "grid"
+              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+              : "space-y-3"
+          }
+        >
+          {paginatedTodos.map((todo) => (
+            <TodoItem
+              user={users?.find((u) => u.id === todo.userId) || null}
+              todo={todo}
+              viewMode={view}
+            />
+          ))}
+        </div>
+
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </div>
     </div>
   );
