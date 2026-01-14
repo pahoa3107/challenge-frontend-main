@@ -9,6 +9,8 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 import { Button } from "../../components/ui/button";
+import { TODO_STATUS, TODO_VIEW } from "~/enums/todo.enum";
+import { TodoSort, TodoStatus } from "~/constants/todo.constant";
 
 interface Props {
   filterByText: FilterProps;
@@ -17,14 +19,14 @@ interface Props {
     onChange: (value: number | null) => void;
   };
   filterByStatus: {
-    value: "all" | "completed" | "in-progress" | "overdue";
-    onChange: (value: "all" | "completed" | "in-progress" | "overdue") => void;
+    value: TODO_STATUS;
+    onChange: (value: TODO_STATUS) => void;
   };
   sortBy: FilterProps;
   users: User[];
   viewAction: {
-    view: "list" | "grid";
-    setView: (view: "list" | "grid") => void;
+    view: TODO_VIEW;
+    setView: (view: TODO_VIEW) => void;
   };
 }
 
@@ -70,18 +72,19 @@ export default function Filter({
 
         {/* Status Filter */}
         <Select
-          value={filterByStatus?.value || "all"}
-          onValueChange={(v) => filterByStatus?.onChange(v as "all" | "completed" | "in-progress")}
+          value={filterByStatus?.value || TODO_STATUS.ALL}
+          onValueChange={(v) => filterByStatus?.onChange(v as TODO_STATUS)}
         >
           <SelectTrigger className="w-40 bg-secondary/50 border-0">
             <CheckCircle2 className="w-4 h-4 mr-2 text-muted-foreground" />
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All status</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="overdue">Overdue</SelectItem>
+            {TodoStatus.map((status) => (
+              <SelectItem key={status.value} value={status.value}>
+                {status.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
@@ -92,26 +95,28 @@ export default function Filter({
             <SelectValue placeholder="Sort" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="default">Default</SelectItem>
-            <SelectItem value="id">By ID</SelectItem>
-            <SelectItem value="title">By Title</SelectItem>
+            {TodoSort.map((sort) => (
+              <SelectItem key={sort.value} value={sort.value}>
+                {sort.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
         {/* View Toggle */}
         <div className="flex ml-auto rounded-lg border border-border overflow-hidden">
           <Button
-            variant={viewAction?.view === "list" ? "secondary" : "ghost"}
+            variant={viewAction?.view === TODO_VIEW.LIST ? "secondary" : "ghost"}
             size="sm"
-            onClick={() => viewAction?.setView("list")}
+            onClick={() => viewAction?.setView(TODO_VIEW.LIST)}
             className="rounded-none px-3"
           >
             <List className="w-4 h-4" />
           </Button>
           <Button
-            variant={viewAction?.view === "grid" ? "secondary" : "ghost"}
+            variant={viewAction?.view === TODO_VIEW.GRID ? "secondary" : "ghost"}
             size="sm"
-            onClick={() => viewAction?.setView("grid")}
+            onClick={() => viewAction?.setView(TODO_VIEW.GRID)}
             className="rounded-none px-3"
           >
             <Grid3X3 className="w-4 h-4" />

@@ -29,9 +29,9 @@ interface CrudFormProps {
   showTrigger?: boolean;
 }
 
-export default function CrudForm({ 
-  users, 
-  onAdd, 
+export default function CrudForm({
+  users,
+  onAdd,
   onUpdate,
   editingTodo = null,
   open: controlledOpen,
@@ -51,12 +51,12 @@ export default function CrudForm({
 
   const hasChanges = useMemo(() => {
     if (!isEditMode || !editingTodo) return true;
-    
+
     const currentTitle = title.trim();
     const currentUserId = userId ? parseInt(userId) : null;
     const currentCompleted = completed;
     const currentDueDate = dueDate || undefined;
-    
+
     return (
       currentTitle !== editingTodo.title ||
       currentUserId !== editingTodo.userId ||
@@ -125,14 +125,14 @@ export default function CrudForm({
           </Button>
         </DialogTrigger>
       )}
-      <DialogContent 
+      <DialogContent
         className="sm:max-w-md"
         onCloseAutoFocus={(e) => {
           e.preventDefault();
         }}
       >
         <DialogHeader>
-          <DialogTitle>{isEditMode ? "Chỉnh sửa Task" : "Thêm Task Mới"}</DialogTitle>
+          <DialogTitle>{isEditMode ? "Edit Task" : "New Task"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -148,7 +148,7 @@ export default function CrudForm({
           <div className="space-y-2">
             <Label htmlFor="user">Assigned By</Label>
             <Select value={userId} onValueChange={setUserId}>
-              <SelectTrigger className="bg-secondary/50 border-0">
+              <SelectTrigger className="w-full bg-secondary/50 border-0">
                 <SelectValue placeholder="Select user" />
               </SelectTrigger>
               <SelectContent>
@@ -167,21 +167,23 @@ export default function CrudForm({
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="bg-secondary/50 border-0"
+              onClick={(e) => e.currentTarget.showPicker?.()}
+              className="w-full bg-secondary/50 border-0 cursor-pointer"
+              placeholder="Select date"
             />
           </div>
           {isEditMode && (
             <div className="space-y-2">
-              <Label htmlFor="completed" className="flex items-center gap-2 cursor-pointer">
-                <input
-                  id="completed"
-                  type="checkbox"
-                  checked={completed}
-                  onChange={(e) => setCompleted(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300"
-                />
-                <span>Completed</span>
-              </Label>
+              <Label htmlFor="status">Status</Label>
+              <Select value={completed ? "completed" : "in-progress"} onValueChange={(v) => setCompleted(v === "completed")}>
+                <SelectTrigger className="w-full bg-secondary/50 border-0">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           )}
           <div className="flex justify-end gap-2">
@@ -195,8 +197,8 @@ export default function CrudForm({
             <Button
               type="submit"
               disabled={
-                !title.trim() || 
-                !userId || 
+                !title.trim() ||
+                !userId ||
                 (isEditMode && !hasChanges)
               }
               className="gradient-primary text-primary-foreground"

@@ -9,6 +9,14 @@ import { useTodoActions } from "~/hooks/useTodoActions";
 import { useSearchParams } from "react-router";
 import type { Todo } from "~/types";
 import EmptyState from "./components/EmptyState";
+import {
+  TODO_STATUS,
+  type TODO_STATUS as TYPE_TODO_STATUS,
+  TODO_VIEW,
+  type TODO_VIEW as TYPE_TODO_VIEW,
+  TODO_SORT,
+  type TODO_SORT as TYPE_TODO_SORT
+} from "~/enums/todo.enum";
 
 const TodoList: React.FC<{ showCompleted?: boolean }> = ({
   showCompleted = false,
@@ -28,22 +36,22 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
   const [filterText, setFilterText] = useState(
     () => searchParams.get("q") || ""
   );
-  const [sortBy, setSortBy] = useState<"default" | "id" | "title">(
-    (searchParams.get("sort") as "default" | "id" | "title") || "default"
+  const [sortBy, setSortBy] = useState<TYPE_TODO_SORT>(
+    (searchParams.get("sort") as TYPE_TODO_SORT) || TODO_SORT.DEFAULT
   );
   const [selectedUser, setSelectedUser] = useState<number | null>(() => {
     const user = searchParams.get("user");
     return user ? Number(user) : null;
   });
   const [selectedStatus, setSelectedStatus] = useState<
-    "all" | "completed" | "in-progress" | "overdue"
-  >((searchParams.get("status") as any) || "all");
+    TYPE_TODO_STATUS
+  >((searchParams.get("status") as TYPE_TODO_STATUS) || TODO_STATUS.ALL);
   const [page, setPage] = useState(() => {
     const p = Number(searchParams.get("page"));
     return Number.isFinite(p) && p > 0 ? p : 1;
   });
-  const [view, setView] = useState<"list" | "grid">(
-    (searchParams.get("view") as "list" | "grid") || "list"
+  const [view, setView] = useState<TYPE_TODO_VIEW>(
+    (searchParams.get("view") as TYPE_TODO_VIEW) || TODO_VIEW.LIST
   );
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [isCrudFormOpen, setIsCrudFormOpen] = useState(false);
@@ -62,10 +70,10 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
     };
 
     setOrDelete("q", filterText || null, "");
-    setOrDelete("sort", sortBy, "default");
+    setOrDelete("sort", sortBy, TODO_SORT.DEFAULT);
     setOrDelete("user", selectedUser ? String(selectedUser) : null);
-    setOrDelete("status", selectedStatus, "all");
-    setOrDelete("view", view, "list");
+    setOrDelete("status", selectedStatus, TODO_STATUS.ALL);
+    setOrDelete("view", view, TODO_VIEW.LIST);
     setOrDelete("page", page > 1 ? String(page) : null, null);
 
     setSearchParams(params, { replace: true });
@@ -75,18 +83,18 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
     if (showCompleted && !todo.completed) return false;
     if (filterText && !todo.title.includes(filterText)) return false;
     if (selectedUser && todo.userId !== selectedUser) return false;
-    if (selectedStatus === "completed" && !todo.completed) return false;
-    if (selectedStatus === "in-progress" && todo.completed) return false;
-    if (selectedStatus === "overdue" && (todo.completed || !todo?.dueDate)) return false;
+    if (selectedStatus === TODO_STATUS.COMPLETED && !todo.completed) return false;
+    if (selectedStatus === TODO_STATUS.IN_PROGRESS && todo.completed) return false;
+    if (selectedStatus === TODO_STATUS.OVERDUE && (todo.completed || !todo?.dueDate)) return false;
     return true;
   });
 
   const totalPages = useMemo(() => Math.ceil(filteredTodos?.length / 10), [filteredTodos])
 
   const sortedTodos = useMemo(() => {
-    if (sortBy === "default") return filteredTodos;
+    if (sortBy === TODO_SORT.DEFAULT) return filteredTodos;
     return [...filteredTodos].sort((a, b) => {
-      if (sortBy === "title") {
+      if (sortBy === TODO_SORT.TITLE) {
         return a.title.localeCompare(b.title);
       }
       return a.id - b.id;
@@ -122,8 +130,8 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
     setEditingTodo(null);
     setFilterText("");
     setSelectedUser(null);
-    setSelectedStatus("all");
-    setSortBy("default");
+    setSelectedStatus(TODO_STATUS.ALL);
+    setSortBy(TODO_SORT.DEFAULT);
     setPage(1);
     if (newTodo) {
       setHighlightedTodoId(newTodo.id);
@@ -156,12 +164,12 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
     setSelectedUser(value);
   };
 
-  const handleSetSelectedStatus = (value: "all" | "completed" | "in-progress" | "overdue") => {
+  const handleSetSelectedStatus = (value: TYPE_TODO_STATUS) => {
     setPage(1);
     setSelectedStatus(value);
   };
 
-  const handleSetSortBy = (value: "default" | "id" | "title") => {
+  const handleSetSortBy = (value: TYPE_TODO_SORT) => {
     setPage(1);
     setSortBy(value);
   };
@@ -169,12 +177,12 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
   const clearFilters = () => {
     setFilterText("");
     setSelectedUser(null);
-    setSelectedStatus("all");
-    setSortBy("default");
+    setSelectedStatus(TODO_STATUS.ALL);
+    setSortBy(TODO_SORT.DEFAULT);
     setPage(1);
   };
 
-  const hasActiveFilters = filterText !== "" || selectedUser !== null || selectedStatus !== "all" || sortBy !== "default";
+  const hasActiveFilters = filterText !== "" || selectedUser !== null || selectedStatus !== TODO_STATUS.ALL || sortBy !== TODO_SORT.DEFAULT;
 
   useEffect(() => {
     if (highlightedTodoId !== null) {
@@ -257,7 +265,7 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
           <>
             <div
               className={
-                view === "grid"
+                view === TODO_VIEW.GRID
                   ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
                   : "space-y-3"
               }
