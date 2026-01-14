@@ -108,11 +108,21 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
     const inprogress = todos.filter((t) => !t.completed).length;
     const userCount = new Set(todos.map((t) => t.userId)).size;
 
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const overdue = todos.filter((t) => {
+      if (t.completed || !t.dueDate) return false;
+      const dueDate = new Date(t.dueDate);
+      dueDate.setHours(0, 0, 0, 0);
+      return dueDate < now;
+    }).length;
+
     return {
       completed,
       userCount,
       total: todos.length,
       inprogress,
+      overdue,
     };
   }, [todos]);
 

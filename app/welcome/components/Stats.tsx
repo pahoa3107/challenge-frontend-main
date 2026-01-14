@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, Users, ListTodo } from "lucide-react";
+import { CheckCircle2, Clock, Users, ListTodo, AlertCircle } from "lucide-react";
 import type { Todo } from "../../types";
 
 interface StatsProps {
@@ -8,6 +8,7 @@ interface StatsProps {
     inprogress: number;
     userCount: number;
     total: number;
+    overdue: number;
   };
 }
 
@@ -34,6 +35,13 @@ const statCards = [
     bgColor: "bg-warning/10",
   },
   {
+    key: "overdue",
+    label: "Overdue",
+    icon: AlertCircle,
+    color: "text-red-600 dark:text-red-400",
+    bgColor: "bg-red-100 dark:bg-red-950",
+  },
+  {
     key: "userCount",
     label: "Users",
     icon: Users,
@@ -44,7 +52,7 @@ const statCards = [
 
 export default function Stats({ stats }: StatsProps) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
       {statCards.map((stat) => {
         const Icon = stat.icon;
         return (
