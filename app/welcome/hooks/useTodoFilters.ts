@@ -66,14 +66,20 @@ export const useTodoFilters = ({ todos, showCompleted = false }: UseTodoFiltersP
       if (filterText && !todo.title.toLowerCase().includes(filterText.toLowerCase())) return false;
       if (selectedUser && todo.userId !== selectedUser) return false;
       if (selectedStatus === TODO_STATUS.COMPLETED && !todo.completed) return false;
-      if (selectedStatus === TODO_STATUS.IN_PROGRESS && todo.completed) return false;
-      if (selectedStatus === TODO_STATUS.OVERDUE && (todo.completed || !todo?.dueDate)) {
+      if (selectedStatus === TODO_STATUS.IN_PROGRESS) {
         if (todo.completed) return false;
-        if (!todo.dueDate) return false;
-        
         const now = new Date();
         now.setHours(0, 0, 0, 0);
-        const dueDate = new Date(todo.dueDate);
+        const dueDate = new Date(todo?.dueDate || "");
+        dueDate.setHours(0, 0, 0, 0);
+        if (dueDate < now) return false;
+      };
+      if (selectedStatus === TODO_STATUS.OVERDUE) {
+        if (todo.completed || !todo.dueDate) return false;
+
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const dueDate = new Date(todo?.dueDate || "");
         dueDate.setHours(0, 0, 0, 0);
         if (dueDate >= now) return false;
       }

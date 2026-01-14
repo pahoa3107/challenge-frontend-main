@@ -20,7 +20,7 @@ export const useTodoStore = create<TodoState>((set) => ({
 
   addTodo: (title, userId, dueDate) => {
     const newTodo: Todo = {
-      id: Date.now(),
+      id: Date.now() + Math.random(),
       userId,
       title: title.trim(),
       completed: false,
