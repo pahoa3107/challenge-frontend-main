@@ -50,6 +50,12 @@ body {
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
+    --danger: 0 84% 60%;
+    --danger-foreground: 0 0% 100%;
+
+    --near-due: 38 92% 50%;
+    --near-due-foreground: 0 0% 100%;
+
     --border: 220 13% 91%;
     --input: 220 13% 91%;
     --ring: 174 72% 40%;
@@ -59,7 +65,7 @@ body {
     --gradient-primary: linear-gradient(135deg, hsl(174, 72%, 40%) 0%, hsl(190, 84%, 45%) 100%);
     --gradient-subtle: linear-gradient(135deg, hsl(174, 72%, 96%) 0%, hsl(190, 84%, 96%) 100%);
     --gradient-hero: linear-gradient(135deg, hsl(174, 72%, 95%) 0%, hsl(220, 14%, 98%) 50%, hsl(190, 60%, 95%) 100%);
-    
+
     --shadow-soft: 0 2px 8px -2px hsl(220 25% 10% / 0.08);
     --shadow-medium: 0 4px 16px -4px hsl(220 25% 10% / 0.12);
     --shadow-glow: 0 0 20px -5px hsl(174 72% 40% / 0.25);
@@ -105,6 +111,12 @@ body {
     --destructive: 0 62% 50%;
     --destructive-foreground: 210 40% 98%;
 
+    --danger: 0 72% 55%;
+    --danger-foreground: 210 40% 98%;
+
+    --near-due: 38 92% 55%;
+    --near-due-foreground: 222 47% 6%;
+
     --border: 222 30% 18%;
     --input: 222 30% 18%;
     --ring: 174 72% 50%;
@@ -112,7 +124,7 @@ body {
     --gradient-primary: linear-gradient(135deg, hsl(174, 72%, 50%) 0%, hsl(190, 84%, 55%) 100%);
     --gradient-subtle: linear-gradient(135deg, hsl(174, 50%, 15%) 0%, hsl(190, 50%, 15%) 100%);
     --gradient-hero: linear-gradient(135deg, hsl(222, 47%, 8%) 0%, hsl(222, 47%, 6%) 50%, hsl(220, 40%, 10%) 100%);
-    
+
     --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
     --shadow-medium: 0 4px 16px -4px hsl(0 0% 0% / 0.4);
     --shadow-glow: 0 0 20px -5px hsl(174 72% 50% / 0.35);
@@ -143,27 +155,27 @@ body {
   .gradient-primary {
     background: var(--gradient-primary);
   }
-  
+
   .gradient-subtle {
     background: var(--gradient-subtle);
   }
-  
+
   .gradient-hero {
     background: var(--gradient-hero);
   }
-  
+
   .shadow-soft {
     box-shadow: var(--shadow-soft);
   }
-  
+
   .shadow-medium {
     box-shadow: var(--shadow-medium);
   }
-  
+
   .shadow-glow {
     box-shadow: var(--shadow-glow);
   }
-  
+
   .glass {
     backdrop-filter: blur(12px);
     background: hsl(var(--card) / 0.8);

@@ -21,7 +21,7 @@ import type { Todo, User } from "~/types";
 
 interface CrudFormProps {
   users: User[];
-  onAdd: (title: string, userId: number) => void;
+  onAdd: (title: string, userId: number, dueDate?: string) => void;
   onUpdate?: (id: number, updates: Partial<Todo>) => void;
   editingTodo?: Todo | null;
   open?: boolean;
@@ -42,6 +42,7 @@ export default function CrudForm({
   const [title, setTitle] = useState("");
   const [userId, setUserId] = useState<string>("");
   const [completed, setCompleted] = useState(false);
+  const [dueDate, setDueDate] = useState<string>("");
 
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = controlledOnOpenChange || setInternalOpen;
@@ -54,19 +55,22 @@ export default function CrudForm({
     const currentTitle = title.trim();
     const currentUserId = userId ? parseInt(userId) : null;
     const currentCompleted = completed;
+    const currentDueDate = dueDate || undefined;
     
     return (
       currentTitle !== editingTodo.title ||
       currentUserId !== editingTodo.userId ||
-      currentCompleted !== editingTodo.completed
+      currentCompleted !== editingTodo.completed ||
+      currentDueDate !== editingTodo.dueDate
     );
-  }, [isEditMode, editingTodo, title, userId, completed]);
+  }, [isEditMode, editingTodo, title, userId, completed, dueDate]);
 
   useEffect(() => {
     if (editingTodo) {
       setTitle(editingTodo.title);
       setUserId(editingTodo.userId.toString());
       setCompleted(editingTodo.completed);
+      setDueDate(editingTodo.dueDate || "");
     }
   }, [editingTodo]);
 
@@ -75,6 +79,7 @@ export default function CrudForm({
       setTitle("");
       setUserId("");
       setCompleted(false);
+      setDueDate("");
     }
   }, [open, editingTodo]);
 
@@ -86,9 +91,10 @@ export default function CrudForm({
           title: title.trim(),
           userId: parseInt(userId),
           completed,
+          dueDate: dueDate || undefined,
         });
       } else {
-        onAdd(title, parseInt(userId));
+        onAdd(title, parseInt(userId), dueDate || undefined);
       }
       setOpen(false);
     }
@@ -99,10 +105,12 @@ export default function CrudForm({
       setTitle(editingTodo.title);
       setUserId(editingTodo.userId.toString());
       setCompleted(editingTodo.completed);
+      setDueDate(editingTodo.dueDate || "");
     } else {
       setTitle("");
       setUserId("");
       setCompleted(false);
+      setDueDate("");
     }
     setOpen(false);
   };
@@ -151,6 +159,16 @@ export default function CrudForm({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="dueDate">Due Date (Optional)</Label>
+            <Input
+              id="dueDate"
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="bg-secondary/50 border-0"
+            />
           </div>
           {isEditMode && (
             <div className="space-y-2">

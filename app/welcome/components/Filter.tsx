@@ -17,8 +17,8 @@ interface Props {
     onChange: (value: number | null) => void;
   };
   filterByStatus: {
-    value: "all" | "completed" | "in-progress";
-    onChange: (value: "all" | "completed" | "in-progress") => void;
+    value: "all" | "completed" | "in-progress" | "overdue";
+    onChange: (value: "all" | "completed" | "in-progress" | "overdue") => void;
   };
   sortBy: FilterProps;
   users: User[];
@@ -28,14 +28,14 @@ interface Props {
   };
 }
 
-export const Filter = ({
+export default function Filter({
   filterByText,
   filterByUser,
   filterByStatus,
   sortBy,
   users,
   viewAction
-}: Props) => {
+}: Props) {
   return (
     <div className="bg-card rounded-xl p-4 shadow-soft border border-border/50 space-y-4">
       {/* Search */}
@@ -81,6 +81,7 @@ export const Filter = ({
             <SelectItem value="all">All status</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
             <SelectItem value="in-progress">In Progress</SelectItem>
+            <SelectItem value="overdue">Overdue</SelectItem>
           </SelectContent>
         </Select>
 

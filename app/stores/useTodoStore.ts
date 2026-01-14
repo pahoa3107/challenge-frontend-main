@@ -5,7 +5,7 @@ import type { Todo } from "~/types";
 type TodoState = {
   todos: Todo[];
   setTodos: (todos: Todo[]) => void;
-  addTodo: (title: string, userId: number) => Todo;
+  addTodo: (title: string, userId: number, dueDate?: string) => Todo;
   updateTodo: (id: number, updates: Partial<Todo>) => void;
   deleteTodo: (id: number) => void;
   toggleComplete: (id: number) => void;
@@ -16,12 +16,13 @@ export const useTodoStore = create<TodoState>((set) => ({
 
   setTodos: (todos) => set({ todos }),
 
-  addTodo: (title, userId) => {
+  addTodo: (title, userId, dueDate) => {
     const newTodo: Todo = {
       id: Date.now(),
       userId,
       title: title.trim(),
       completed: false,
+      dueDate,
     };
 
     set((state) => ({

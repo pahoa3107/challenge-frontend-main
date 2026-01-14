@@ -2,10 +2,12 @@ import { CheckSquare } from "lucide-react";
 import { ThemeToggle } from "~/components/ThemeToggle";
 import type { Todo, User } from "~/types";
 import CrudForm from "./CrudForm";
+import NotificationBell from "./NotificationBell";
 
 interface IProps {
   users: User[];
-  onAdd: (title: string, userId: number) => void;
+  todos: Todo[];
+  onAdd: (title: string, userId: number, dueDate?: string) => void;
   onUpdate?: (id: number, updates: Partial<Todo>) => void;
   editingTodo?: Todo | null;
   open?: boolean;
@@ -14,6 +16,7 @@ interface IProps {
 
 export default function Header({ 
   users, 
+  todos,
   onAdd, 
   onUpdate,
   editingTodo,
@@ -37,6 +40,7 @@ export default function Header({
       </div>
       <div className="flex items-center gap-3">
         <ThemeToggle />
+        <NotificationBell todos={todos} />
         <CrudForm 
           users={users} 
           onAdd={onAdd}

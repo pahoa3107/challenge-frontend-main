@@ -1,13 +1,14 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { TodoItem } from "./components/TodoItem";
-import { Filter } from "./components/Filter";
-import { Stats } from "./components/Stats";
+import TodoItem from "./components/TodoItem";
+import Filter from "./components/Filter";
+import Stats from "./components/Stats";
 import Pagination from "./components/Pagination";
 import { useUsers } from "~/hooks/useUsers";
 import Header from "./components/Header";
 import { useTodoActions } from "~/hooks/useTodoActions";
 import { useSearchParams } from "react-router";
 import type { Todo } from "~/types";
+import EmptyState from "./components/EmptyState";
 
 const TodoList: React.FC<{ showCompleted?: boolean }> = ({
   showCompleted = false,
@@ -35,7 +36,7 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
     return user ? Number(user) : null;
   });
   const [selectedStatus, setSelectedStatus] = useState<
-    "all" | "completed" | "in-progress"
+    "all" | "completed" | "in-progress" | "overdue"
   >((searchParams.get("status") as any) || "all");
   const [page, setPage] = useState(() => {
     const p = Number(searchParams.get("page"));
@@ -76,6 +77,7 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
     if (selectedUser && todo.userId !== selectedUser) return false;
     if (selectedStatus === "completed" && !todo.completed) return false;
     if (selectedStatus === "in-progress" && todo.completed) return false;
+    if (selectedStatus === "overdue" && (todo.completed || !todo?.dueDate)) return false;
     return true;
   });
 
@@ -114,8 +116,8 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
     }
   };
 
-  const handleAddTodo = (title: string, userId: number) => {
-    const newTodo = addTodo(title, userId);
+  const handleAddTodo = (title: string, userId: number, dueDate?: string) => {
+    const newTodo = addTodo(title, userId, dueDate);
     setIsCrudFormOpen(false);
     setEditingTodo(null);
     setFilterText("");
@@ -154,7 +156,7 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
     setSelectedUser(value);
   };
 
-  const handleSetSelectedStatus = (value: "all" | "completed" | "in-progress") => {
+  const handleSetSelectedStatus = (value: "all" | "completed" | "in-progress" | "overdue") => {
     setPage(1);
     setSelectedStatus(value);
   };
@@ -163,6 +165,16 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
     setPage(1);
     setSortBy(value);
   };
+
+  const clearFilters = () => {
+    setFilterText("");
+    setSelectedUser(null);
+    setSelectedStatus("all");
+    setSortBy("default");
+    setPage(1);
+  };
+
+  const hasActiveFilters = filterText !== "" || selectedUser !== null || selectedStatus !== "all" || sortBy !== "default";
 
   useEffect(() => {
     if (highlightedTodoId !== null) {
@@ -189,8 +201,9 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
   return (
     <div className="min-h-screen gradient-hero">
       <div className="max-w-6xl mx-auto px-4 py-6 md:py-10 space-y-6">
-        <Header 
-          users={users} 
+        <Header
+          users={users}
+          todos={todos}
           onAdd={handleAddTodo}
           onUpdate={handleUpdateTodo}
           editingTodo={editingTodo}
@@ -235,32 +248,41 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
         </div>
 
         {/* Todo Items */}
-        <div
-          className={
-            view === "grid"
-              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-              : "space-y-3"
-          }
-        >
-          {paginatedTodos.map((todo) => (
-            <TodoItem
-              key={todo.id}
-              user={users?.find((u) => u.id === todo.userId) || null}
-              todo={todo}
-              viewMode={view}
-              handleTodoClick={handleTodoClick}
-              onToggleComplete={toggleComplete}
-              isHighlighted={highlightedTodoId === todo.id}
-              isNew={newTodoId === todo.id}
-            />
-          ))}
-        </div>
+        {filteredTodos.length === 0 ? (
+          <EmptyState
+            hasFilters={hasActiveFilters}
+            onClearFilters={clearFilters}
+          />
+        ) : (
+          <>
+            <div
+              className={
+                view === "grid"
+                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                  : "space-y-3"
+              }
+            >
+              {paginatedTodos.map((todo) => (
+                <TodoItem
+                  key={todo.id}
+                  user={users?.find((u) => u.id === todo.userId) || null}
+                  todo={todo}
+                  viewMode={view}
+                  handleTodoClick={handleTodoClick}
+                  onToggleComplete={toggleComplete}
+                  isHighlighted={highlightedTodoId === todo.id}
+                  isNew={newTodoId === todo.id}
+                />
+              ))}
+            </div>
 
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-        />
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
+          </>
+        )}
       </div>
     </div>
   );

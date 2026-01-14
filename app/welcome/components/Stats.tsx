@@ -1,7 +1,7 @@
 import { CheckCircle2, Clock, Users, ListTodo } from "lucide-react";
 import type { Todo } from "../../types";
 
-interface IProps {
+interface StatsProps {
   todos?: Todo[];
   stats: {
     completed: number;
@@ -42,12 +42,10 @@ const statCards = [
   },
 ];
 
-export const Stats = (props: IProps) => {
-  const { stats } = props;
-
+export default function Stats({ stats }: StatsProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-      {statCards.map((stat, index) => {
+      {statCards.map((stat) => {
         const Icon = stat.icon;
         return (
           <div

@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 import type { Todo, User } from "../../types";
 import { cn } from "~/lib/utils";
-import { CheckCircle2, Circle, UserIcon } from "lucide-react";
-interface Props {
+import { CheckCircle2, Circle, UserIcon, Calendar, AlertCircle } from "lucide-react";
+interface TodoItemProps {
   todo: Todo;
   user: User | null;
   handleTodoClick?: (id: number) => void;
@@ -12,9 +12,46 @@ interface Props {
   isNew?: boolean;
 }
 
-export const TodoItem = ({ todo, user, viewMode, handleTodoClick, onToggleComplete, isHighlighted = false, isNew = false }: Props) => {
+export default function TodoItem({ todo, user, viewMode, handleTodoClick, onToggleComplete, isHighlighted = false, isNew = false }: TodoItemProps) {
   const isGrid = viewMode === "grid";
-  
+
+  const getDueDateStatus = () => {
+    if (!todo.dueDate || todo.completed) return null;
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const dueDate = new Date(todo.dueDate);
+    dueDate.setHours(0, 0, 0, 0);
+
+    const diffTime = dueDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return 'overdue';
+    if (diffDays <= 1) return 'near-due';
+    return 'normal';
+  };
+
+  const formatDueDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dueDate = new Date(dateString);
+    dueDate.setHours(0, 0, 0, 0);
+
+    const diffTime = dueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Tomorrow';
+    if (diffDays === -1) return 'Yesterday';
+
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const dueDateStatus = getDueDateStatus();
+  const isNearDue = dueDateStatus === 'near-due';
+  const isOverdue = dueDateStatus === 'overdue';
+
   const handleToggleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onToggleComplete?.(todo.id);
@@ -24,8 +61,8 @@ export const TodoItem = ({ todo, user, viewMode, handleTodoClick, onToggleComple
     <motion.div
       layout
       initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ 
-        opacity: 1, 
+      animate={{
+        opacity: 1,
         scale: isHighlighted ? 1.02 : 1,
       }}
       exit={{ opacity: 0, scale: 0.95 }}
@@ -34,9 +71,11 @@ export const TodoItem = ({ todo, user, viewMode, handleTodoClick, onToggleComple
       onClick={() => handleTodoClick?.(todo.id)}
       className={cn(
         "group bg-card rounded-xl border shadow-soft hover:shadow-medium transition-all duration-300 cursor-pointer",
-        isHighlighted 
-          ? "border-primary shadow-lg ring-4 ring-primary/40 bg-primary/5" 
-          : "border-border/50",
+        isHighlighted
+          ? "border-primary shadow-lg ring-4 ring-primary/40 bg-primary/5"
+          : isNearDue
+            ? "border-orange-400 shadow-lg ring-2 ring-orange-400/30 bg-orange-50/50 dark:bg-orange-950/20"
+            : "border-border/50",
         isGrid ? "p-4" : "p-4 flex items-center gap-4"
       )}
     >
@@ -93,6 +132,21 @@ export const TodoItem = ({ todo, user, viewMode, handleTodoClick, onToggleComple
             </div>
           )}
           <span className="text-xs text-muted-foreground/60">#{todo.id}</span>
+          {todo.dueDate && (
+            <div className={cn(
+              "flex items-center gap-1 text-xs",
+              isOverdue ? "text-red-600 dark:text-red-400 font-semibold" :
+                isNearDue ? "text-orange-600 dark:text-orange-400 font-medium" :
+                  "text-muted-foreground"
+            )}>
+              {isOverdue ? (
+                <AlertCircle className="w-3.5 h-3.5" />
+              ) : (
+                <Calendar className="w-3.5 h-3.5" />
+              )}
+              <span>{formatDueDate(todo.dueDate)}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -100,12 +154,14 @@ export const TodoItem = ({ todo, user, viewMode, handleTodoClick, onToggleComple
         <span
           className={cn(
             "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium",
-            todo.completed
-              ? "bg-success/10 text-success"
-              : "bg-warning/10 text-warning"
+            isOverdue
+              ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400"
+              : todo.completed
+                ? "bg-success/10 text-success"
+                : "bg-warning/10 text-warning"
           )}
         >
-          {todo.completed ? "Completed" : "In Progress"}
+          {isOverdue ? "Overdue" : todo.completed ? "Completed" : "In Progress"}
         </span>
       </div>
     </motion.div>
