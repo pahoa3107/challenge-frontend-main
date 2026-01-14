@@ -10,6 +10,8 @@ export const useTodoActions = () => {
     updateTodo,
     deleteTodo,
     toggleComplete,
+    bulkDelete,
+    bulkUpdateStatus,
   } = useTodoStore();
 
   const {
@@ -32,5 +34,7 @@ export const useTodoActions = () => {
     updateTodo,
     deleteTodo,
     toggleComplete,
+    bulkDelete,
+    bulkUpdateStatus,
   };
 };

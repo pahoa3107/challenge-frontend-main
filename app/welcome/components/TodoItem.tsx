@@ -8,12 +8,14 @@ interface TodoItemProps {
   handleTodoClick?: (id: number) => void;
   onToggleComplete?: (id: number) => void;
   onDelete?: (id: number) => void;
+  isSelected?: boolean;
+  onToggleSelect?: (id: number) => void;
   viewMode: string;
   isHighlighted?: boolean;
   isNew?: boolean;
 }
 
-export default function TodoItem({ todo, user, viewMode, handleTodoClick, onToggleComplete, onDelete, isHighlighted = false, isNew = false }: TodoItemProps) {
+export default function TodoItem({ todo, user, viewMode, handleTodoClick, onToggleComplete, onDelete, isSelected = false, onToggleSelect, isHighlighted = false, isNew = false }: TodoItemProps) {
   const isGrid = viewMode === "grid";
 
   const getDueDateStatus = () => {
@@ -71,32 +73,35 @@ export default function TodoItem({ todo, user, viewMode, handleTodoClick, onTogg
       transition={{ duration: 0.2 }}
       onClick={() => handleTodoClick?.(todo.id)}
       className={cn(
-        "group bg-card rounded-xl border shadow-soft hover:shadow-medium transition-all duration-300 cursor-pointer",
+        "group bg-card rounded-xl border shadow-soft hover:shadow-medium transition-all duration-300 cursor-pointer relative overflow-hidden",
+        isSelected
+          ? "border-primary/50 bg-primary/[0.03] ring-1 ring-primary/20"
+          : "border-border/50",
         isHighlighted
           ? "border-primary shadow-lg ring-4 ring-primary/40 bg-primary/5"
           : isNearDue
             ? "border-orange-400 shadow-lg ring-2 ring-orange-400/30 bg-orange-50/50 dark:bg-orange-950/20"
-            : "border-border/50",
+            : "",
         isGrid ? "p-4" : "p-4 flex items-center gap-4"
       )}
     >
-      <button
-        onClick={handleToggleClick}
+      <div
         className={cn(
-          "shrink-0 cursor-pointer hover:scale-110 transition-transform",
-          isGrid ? "mb-3" : ""
+          "shrink-0 flex items-center justify-center mr-1",
+          isGrid ? "absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity" : "",
+          isSelected && isGrid ? "opacity-100" : ""
         )}
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
       >
-        {todo.completed ? (
-          <div className="w-6 h-6 rounded-full bg-success/10 flex items-center justify-center">
-            <CheckCircle2 className="w-4 h-4 text-success" />
-          </div>
-        ) : (
-          <div className="w-6 h-6 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center group-hover:border-primary/50 transition-colors">
-            <Circle className="w-3 h-3 text-transparent" />
-          </div>
-        )}
-      </button>
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={() => onToggleSelect?.(todo.id)}
+          className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer accent-primary"
+        />
+      </div>
 
       <div className={cn("flex-1 min-w-0", isGrid ? "" : "")}>
         <div className="flex items-center gap-2 mb-1">
@@ -164,6 +169,26 @@ export default function TodoItem({ todo, user, viewMode, handleTodoClick, onTogg
         >
           {isOverdue ? "Overdue" : todo.completed ? "Completed" : "In Progress"}
         </span>
+
+        <button
+          onClick={handleToggleClick}
+          className={cn(
+            "shrink-0 cursor-pointer transition-all duration-300 relative group/btn",
+            isGrid ? "mb-3" : ""
+          )}
+          title={todo.completed ? "Mark as in progress" : "Mark as completed"}
+        >
+          {todo.completed ? (
+            <div className="w-6 h-6 rounded-full bg-success/20 flex items-center justify-center border-2 border-success/30 hover:bg-success/30 hover:scale-110 transition-all">
+              <CheckCircle2 className="w-4 h-4 text-success" />
+            </div>
+          ) : (
+            <div className="w-6 h-6 rounded-full border-2 border-muted-foreground/20 flex items-center justify-center hover:border-primary/50 hover:bg-primary/5 transition-all relative overflow-hidden">
+              <CheckCircle2 className="w-4 h-4 text-primary opacity-0 group-hover/btn:opacity-100 scale-50 group-hover/btn:scale-100 transition-all duration-300" />
+              <Circle className="w-3 h-3 text-muted-foreground/30 group-hover/btn:opacity-0 transition-opacity absolute" />
+            </div>
+          )}
+        </button>
 
         <button
           onClick={(e) => {
