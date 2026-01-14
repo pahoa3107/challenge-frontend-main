@@ -1,42 +1,95 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { TodoItem } from "./components/TodoItem";
 import { Filter } from "./components/Filter";
 import { Stats } from "./components/Stats";
 import Pagination from "./components/Pagination";
-import { useTodos } from "~/hooks/useTodos";
 import { useUsers } from "~/hooks/useUsers";
 import Header from "./components/Header";
+import { useTodoActions } from "~/hooks/useTodoActions";
+import { useSearchParams } from "react-router";
+import type { Todo } from "~/types";
 
 const TodoList: React.FC<{ showCompleted?: boolean }> = ({
   showCompleted = false,
 }) => {
   const {
-    data: { todos = [], totalPages = 0 } = {},
+    todos,
     isLoading,
     error,
-  } = useTodos();
+    addTodo,
+    updateTodo,
+    toggleComplete
+  } = useTodoActions();
 
   const { data: users = [] } = useUsers();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [filterText, setFilterText] = useState("");
-  const [sortBy, setSortBy] = useState<"id" | "title">("id");
-  const [selectedUser, setSelectedUser] = useState<number | null>(null);
-  const [page, setPage] = useState(1);
-  const [view, setView] = useState<"list" | "grid">("list");
+  const [filterText, setFilterText] = useState(
+    () => searchParams.get("q") || ""
+  );
+  const [sortBy, setSortBy] = useState<"default" | "id" | "title">(
+    (searchParams.get("sort") as "default" | "id" | "title") || "default"
+  );
+  const [selectedUser, setSelectedUser] = useState<number | null>(() => {
+    const user = searchParams.get("user");
+    return user ? Number(user) : null;
+  });
+  const [selectedStatus, setSelectedStatus] = useState<
+    "all" | "completed" | "in-progress"
+  >((searchParams.get("status") as any) || "all");
+  const [page, setPage] = useState(() => {
+    const p = Number(searchParams.get("page"));
+    return Number.isFinite(p) && p > 0 ? p : 1;
+  });
+  const [view, setView] = useState<"list" | "grid">(
+    (searchParams.get("view") as "list" | "grid") || "list"
+  );
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
+  const [isCrudFormOpen, setIsCrudFormOpen] = useState(false);
+  const [highlightedTodoId, setHighlightedTodoId] = useState<number | null>(null);
+  const [newTodoId, setNewTodoId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+
+    const setOrDelete = (key: string, value: string | null, defaultValue: string | null = null) => {
+      if (!value || value === defaultValue) {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    };
+
+    setOrDelete("q", filterText || null, "");
+    setOrDelete("sort", sortBy, "default");
+    setOrDelete("user", selectedUser ? String(selectedUser) : null);
+    setOrDelete("status", selectedStatus, "all");
+    setOrDelete("view", view, "list");
+    setOrDelete("page", page > 1 ? String(page) : null, null);
+
+    setSearchParams(params, { replace: true });
+  }, [filterText, sortBy, selectedUser, selectedStatus, view, page, setSearchParams]);
 
   const filteredTodos = todos?.filter((todo) => {
     if (showCompleted && !todo.completed) return false;
     if (filterText && !todo.title.includes(filterText)) return false;
     if (selectedUser && todo.userId !== selectedUser) return false;
+    if (selectedStatus === "completed" && !todo.completed) return false;
+    if (selectedStatus === "in-progress" && todo.completed) return false;
     return true;
   });
 
-  const sortedTodos = [...filteredTodos].sort((a, b) => {
-    if (sortBy === "title") {
-      return a.title.localeCompare(b.title);
-    }
-    return a.id - b.id;
-  });
+  const totalPages = useMemo(() => Math.ceil(filteredTodos?.length / 10), [filteredTodos])
+
+  const sortedTodos = useMemo(() => {
+    if (sortBy === "default") return filteredTodos;
+    return [...filteredTodos].sort((a, b) => {
+      if (sortBy === "title") {
+        return a.title.localeCompare(b.title);
+      }
+      return a.id - b.id;
+    });
+  }, [sortBy, filteredTodos]);
 
   const paginatedTodos = sortedTodos.slice((page - 1) * 10, page * 10);
 
@@ -53,6 +106,82 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
     };
   }, [todos]);
 
+  const handleTodoClick = (id: number) => {
+    const todo = todos.find((t) => t.id === id);
+    if (todo) {
+      setEditingTodo(todo);
+      setIsCrudFormOpen(true);
+    }
+  };
+
+  const handleAddTodo = (title: string, userId: number) => {
+    const newTodo = addTodo(title, userId);
+    setIsCrudFormOpen(false);
+    setEditingTodo(null);
+    setFilterText("");
+    setSelectedUser(null);
+    setSelectedStatus("all");
+    setSortBy("default");
+    setPage(1);
+    if (newTodo) {
+      setHighlightedTodoId(newTodo.id);
+      setNewTodoId(newTodo.id);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleUpdateTodo = (id: number, updates: Partial<Todo>) => {
+    updateTodo(id, updates);
+    setIsCrudFormOpen(false);
+    setEditingTodo(null);
+    setHighlightedTodoId(id);
+  };
+
+  const handleCrudFormOpenChange = (open: boolean) => {
+    setIsCrudFormOpen(open);
+    if (!open) {
+      setEditingTodo(null);
+    }
+  };
+
+  const handleSetFilterText = (value: string) => {
+    setPage(1);
+    setFilterText(value);
+  };
+
+  const handleSetSelectedUser = (value: number | null) => {
+    setPage(1);
+    setSelectedUser(value);
+  };
+
+  const handleSetSelectedStatus = (value: "all" | "completed" | "in-progress") => {
+    setPage(1);
+    setSelectedStatus(value);
+  };
+
+  const handleSetSortBy = (value: "default" | "id" | "title") => {
+    setPage(1);
+    setSortBy(value);
+  };
+
+  useEffect(() => {
+    if (highlightedTodoId !== null) {
+      const timer = setTimeout(() => {
+        setHighlightedTodoId(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightedTodoId]);
+
+  useEffect(() => {
+    if (newTodoId !== null) {
+      const timer = setTimeout(() => {
+        setNewTodoId(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [newTodoId]);
+
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {String(error)}</div>;
   if (todos.length === 0) return <div>No todos found</div>;
@@ -60,7 +189,14 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
   return (
     <div className="min-h-screen gradient-hero">
       <div className="max-w-6xl mx-auto px-4 py-6 md:py-10 space-y-6">
-        <Header users={users} />
+        <Header 
+          users={users} 
+          onAdd={handleAddTodo}
+          onUpdate={handleUpdateTodo}
+          editingTodo={editingTodo}
+          open={isCrudFormOpen}
+          onOpenChange={handleCrudFormOpenChange}
+        />
 
         {/* Stats */}
         {stats && <Stats stats={stats} />}
@@ -70,15 +206,19 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
           users={Object.values(users)}
           filterByText={{
             value: filterText,
-            onChange: setFilterText,
+            onChange: handleSetFilterText,
           }}
           filterByUser={{
             value: selectedUser,
-            onChange: setSelectedUser,
+            onChange: handleSetSelectedUser,
+          }}
+          filterByStatus={{
+            value: selectedStatus,
+            onChange: handleSetSelectedStatus,
           }}
           sortBy={{
             value: sortBy,
-            onChange: setSortBy,
+            onChange: handleSetSortBy,
           }}
           viewAction={{ view, setView }}
         />
@@ -104,9 +244,14 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
         >
           {paginatedTodos.map((todo) => (
             <TodoItem
+              key={todo.id}
               user={users?.find((u) => u.id === todo.userId) || null}
               todo={todo}
               viewMode={view}
+              handleTodoClick={handleTodoClick}
+              onToggleComplete={toggleComplete}
+              isHighlighted={highlightedTodoId === todo.id}
+              isNew={newTodoId === todo.id}
             />
           ))}
         </div>

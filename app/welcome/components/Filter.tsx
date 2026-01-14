@@ -1,5 +1,5 @@
 import type { FilterProps, User } from "../../types";
-import { Search, SortAsc, Grid3X3, List, FilterIcon } from "lucide-react";
+import { Search, SortAsc, Grid3X3, List, FilterIcon, CheckCircle2 } from "lucide-react";
 import { Input } from "../../components/ui/input";
 import {
   Select,
@@ -16,6 +16,10 @@ interface Props {
     value: number | null;
     onChange: (value: number | null) => void;
   };
+  filterByStatus: {
+    value: "all" | "completed" | "in-progress";
+    onChange: (value: "all" | "completed" | "in-progress") => void;
+  };
   sortBy: FilterProps;
   users: User[];
   viewAction: {
@@ -27,6 +31,7 @@ interface Props {
 export const Filter = ({
   filterByText,
   filterByUser,
+  filterByStatus,
   sortBy,
   users,
   viewAction
@@ -63,6 +68,22 @@ export const Filter = ({
           </SelectContent>
         </Select>
 
+        {/* Status Filter */}
+        <Select
+          value={filterByStatus?.value || "all"}
+          onValueChange={(v) => filterByStatus?.onChange(v as "all" | "completed" | "in-progress")}
+        >
+          <SelectTrigger className="w-40 bg-secondary/50 border-0">
+            <CheckCircle2 className="w-4 h-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All status</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="in-progress">In Progress</SelectItem>
+          </SelectContent>
+        </Select>
+
         {/* Sort */}
         <Select value={sortBy?.value as any} onValueChange={(v) => sortBy?.onChange(v)}>
           <SelectTrigger className="w-35 bg-secondary/50 border-0">
@@ -70,6 +91,7 @@ export const Filter = ({
             <SelectValue placeholder="Sort" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="default">Default</SelectItem>
             <SelectItem value="id">By ID</SelectItem>
             <SelectItem value="title">By Title</SelectItem>
           </SelectContent>

@@ -1,12 +1,25 @@
 import { CheckSquare } from "lucide-react";
 import { ThemeToggle } from "~/components/ThemeToggle";
-import type { User } from "~/types";
+import type { Todo, User } from "~/types";
+import CrudForm from "./CrudForm";
 
 interface IProps {
   users: User[];
+  onAdd: (title: string, userId: number) => void;
+  onUpdate?: (id: number, updates: Partial<Todo>) => void;
+  editingTodo?: Todo | null;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export default function Header({ users }: IProps) {
+export default function Header({ 
+  users, 
+  onAdd, 
+  onUpdate,
+  editingTodo,
+  open,
+  onOpenChange,
+}: IProps) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
@@ -22,7 +35,17 @@ export default function Header({ users }: IProps) {
           </p>
         </div>
       </div>
-      <ThemeToggle />
+      <div className="flex items-center gap-3">
+        <ThemeToggle />
+        <CrudForm 
+          users={users} 
+          onAdd={onAdd}
+          onUpdate={onUpdate}
+          editingTodo={editingTodo}
+          open={open}
+          onOpenChange={onOpenChange}
+        />
+      </div>
     </div>
   );
 }

@@ -6,25 +6,42 @@ interface Props {
   todo: Todo;
   user: User | null;
   handleTodoClick?: (id: number) => void;
+  onToggleComplete?: (id: number) => void;
   viewMode: string;
+  isHighlighted?: boolean;
+  isNew?: boolean;
 }
 
-export const TodoItem = ({ todo, user, viewMode }: Props) => {
+export const TodoItem = ({ todo, user, viewMode, handleTodoClick, onToggleComplete, isHighlighted = false, isNew = false }: Props) => {
   const isGrid = viewMode === "grid";
+  
+  const handleToggleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleComplete?.(todo.id);
+  };
+
   return (
     <motion.div
       layout
       initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
+      animate={{ 
+        opacity: 1, 
+        scale: isHighlighted ? 1.02 : 1,
+      }}
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ scale: 1.01 }}
       transition={{ duration: 0.2 }}
+      onClick={() => handleTodoClick?.(todo.id)}
       className={cn(
-        "group bg-card rounded-xl border border-border/50 shadow-soft hover:shadow-medium transition-all duration-200",
+        "group bg-card rounded-xl border shadow-soft hover:shadow-medium transition-all duration-300 cursor-pointer",
+        isHighlighted 
+          ? "border-primary shadow-lg ring-4 ring-primary/40 bg-primary/5" 
+          : "border-border/50",
         isGrid ? "p-4" : "p-4 flex items-center gap-4"
       )}
     >
       <button
+        onClick={handleToggleClick}
         className={cn(
           "shrink-0 cursor-pointer hover:scale-110 transition-transform",
           isGrid ? "mb-3" : ""
@@ -42,16 +59,29 @@ export const TodoItem = ({ todo, user, viewMode }: Props) => {
       </button>
 
       <div className={cn("flex-1 min-w-0", isGrid ? "" : "")}>
-        <p
-          className={cn(
-            "text-sm font-medium leading-relaxed",
-            todo.completed
-              ? "text-muted-foreground line-through"
-              : "text-foreground"
+        <div className="flex items-center gap-2 mb-1">
+          <p
+            className={cn(
+              "text-sm font-medium leading-relaxed",
+              todo.completed
+                ? "text-muted-foreground line-through"
+                : "text-foreground"
+            )}
+          >
+            {todo.title}
+          </p>
+          {isNew && (
+            <motion.span
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.2 }}
+              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary text-primary-foreground shadow-sm"
+            >
+              New
+            </motion.span>
           )}
-        >
-          {todo.title}
-        </p>
+        </div>
 
         <div className={cn("flex items-center gap-2 mt-2", isGrid ? "" : "")}>
           {user && (
