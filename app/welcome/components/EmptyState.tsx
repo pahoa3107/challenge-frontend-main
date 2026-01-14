@@ -36,11 +36,8 @@ export default function EmptyState({ hasFilters, onClearFilters }: EmptyStatePro
         <Inbox className="w-10 h-10 text-primary/50" />
       </div>
       <h3 className="text-xl font-semibold text-foreground mb-2">
-        Chưa có task nào
+        No Task
       </h3>
-      <p className="text-muted-foreground text-center max-w-md">
-        Bắt đầu bằng cách tạo task đầu tiên của bạn!
-      </p>
     </div>
   );
 }

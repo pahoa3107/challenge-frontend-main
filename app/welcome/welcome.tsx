@@ -9,6 +9,8 @@ import { useTodoActions } from "~/hooks/useTodoActions";
 import { useSearchParams } from "react-router";
 import type { Todo } from "~/types";
 import EmptyState from "./components/EmptyState";
+import LoadingState from "../components/LoadingState";
+import ErrorState from "../components/ErrorState";
 import {
   TODO_STATUS,
   type TODO_STATUS as TYPE_TODO_STATUS,
@@ -212,9 +214,17 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
     }
   }, [newTodoId]);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {String(error)}</div>;
-  if (todos.length === 0) return <div>No todos found</div>;
+  if (isLoading) return <LoadingState message="Loading tasks..." />;
+  if (error) return <ErrorState error={error} />;
+  if (todos.length === 0) return (
+    <EmptyState
+      fullScreen
+      title="No tasks found"
+      description="Get started by creating your first task!"
+      actionLabel="Create Task"
+      onAction={() => setIsCrudFormOpen(true)}
+    />
+  );
 
   return (
     <div className="min-h-screen gradient-hero">
