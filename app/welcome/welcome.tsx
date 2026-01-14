@@ -29,6 +29,7 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
     error,
     addTodo,
     updateTodo,
+    deleteTodo,
     toggleComplete
   } = useTodoActions();
 
@@ -218,11 +219,7 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
   if (error) return <ErrorState error={error} />;
   if (todos.length === 0) return (
     <EmptyState
-      fullScreen
-      title="No tasks found"
-      description="Get started by creating your first task!"
-      actionLabel="Create Task"
-      onAction={() => setIsCrudFormOpen(true)}
+      hasFilters={false}
     />
   );
 
@@ -298,6 +295,7 @@ const TodoList: React.FC<{ showCompleted?: boolean }> = ({
                   viewMode={view}
                   handleTodoClick={handleTodoClick}
                   onToggleComplete={toggleComplete}
+                  onDelete={deleteTodo}
                   isHighlighted={highlightedTodoId === todo.id}
                   isNew={newTodoId === todo.id}
                 />

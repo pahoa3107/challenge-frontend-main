@@ -3,7 +3,7 @@ import { Button } from "~/components/ui/button";
 
 interface EmptyStateProps {
   hasFilters: boolean;
-  onClearFilters: () => void;
+  onClearFilters?: () => void;
 }
 
 export default function EmptyState({ hasFilters, onClearFilters }: EmptyStateProps) {

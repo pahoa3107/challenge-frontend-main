@@ -1,18 +1,19 @@
 import { motion } from "framer-motion";
 import type { Todo, User } from "../../types";
 import { cn } from "~/lib/utils";
-import { CheckCircle2, Circle, UserIcon, Calendar, AlertCircle } from "lucide-react";
+import { CheckCircle2, Circle, UserIcon, Calendar, AlertCircle, Trash2 } from "lucide-react";
 interface TodoItemProps {
   todo: Todo;
   user: User | null;
   handleTodoClick?: (id: number) => void;
   onToggleComplete?: (id: number) => void;
+  onDelete?: (id: number) => void;
   viewMode: string;
   isHighlighted?: boolean;
   isNew?: boolean;
 }
 
-export default function TodoItem({ todo, user, viewMode, handleTodoClick, onToggleComplete, isHighlighted = false, isNew = false }: TodoItemProps) {
+export default function TodoItem({ todo, user, viewMode, handleTodoClick, onToggleComplete, onDelete, isHighlighted = false, isNew = false }: TodoItemProps) {
   const isGrid = viewMode === "grid";
 
   const getDueDateStatus = () => {
@@ -150,7 +151,7 @@ export default function TodoItem({ todo, user, viewMode, handleTodoClick, onTogg
         </div>
       </div>
 
-      <div className={cn("shrink-0", isGrid ? "mt-3" : "")}>
+      <div className={cn("shrink-0 flex items-center gap-2", isGrid ? "mt-3 justify-between" : "")}>
         <span
           className={cn(
             "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium",
@@ -163,6 +164,19 @@ export default function TodoItem({ todo, user, viewMode, handleTodoClick, onTogg
         >
           {isOverdue ? "Overdue" : todo.completed ? "Completed" : "In Progress"}
         </span>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (window.confirm("Are you sure you want to delete this task?")) {
+              onDelete?.(todo.id);
+            }
+          }}
+          className="p-1.5 rounded-lg text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+          title="Delete task"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
       </div>
     </motion.div>
   );
